@@ -72,7 +72,7 @@ func (s *SmartContract) transferTokens(ctx contractapi.TransactionContextInterfa
 
 // Approve gets the signature of the user and verifies they have signed the contract
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, slaId, userName, signatureHex string) error {
-	contract, err := s.ReadContract(ctx, slaId)
+	contract, err := s.GetContract(ctx, slaId)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 	dailyViolations := make([]int, 1)
 	dailyValue := 0.0
 	if exists {
-		contract, err := s.ReadContract(ctx, sla.ID)
+		contract, err := s.GetContract(ctx, sla.ID)
 		if err != nil {
 			return err
 		}
@@ -203,8 +203,18 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 	return ctx.GetStub().PutState(fmt.Sprintf("contract_%v", contract.SLA.ID), slaContractJSON)
 }
 
-// ReadContract returns the Contract stored in the world state with given id.
-func (s *SmartContract) ReadContract(ctx contractapi.TransactionContextInterface, id string) (*cc_SLA, error) {
+// ReadSLA returns the Contract stored in the world state with given id.
+func (s *SmartContract) ReadSLA(ctx contractapi.TransactionContextInterface, id string) (lib.SLA, error) {
+	contract, err := s.GetContract(ctx, id)
+	if err != nil {
+		return lib.SLA{}, err
+	}
+
+	return contract.SLA, nil
+}
+
+// GetContract returns all the SLA information stored in the world state with given id.
+func (s *SmartContract) GetContract(ctx contractapi.TransactionContextInterface, id string) (*cc_SLA, error) {
 	ContractJSON, err := ctx.GetStub().GetState(fmt.Sprintf("contract_%v", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
@@ -252,7 +262,7 @@ func (s *SmartContract) SLAViolated(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("failed to unmarshal json: %v", err)
 	}
 
-	contract, err := s.ReadContract(ctx, vio.SLAID)
+	contract, err := s.GetContract(ctx, vio.SLAID)
 	if err != nil {
 		return err
 	}
@@ -300,7 +310,7 @@ func (s *SmartContract) SLAViolated(ctx contractapi.TransactionContextInterface,
 }
 
 func (s *SmartContract) RefundSLA(ctx contractapi.TransactionContextInterface, id string) error {
-	contract, err := s.ReadContract(ctx, id)
+	contract, err := s.GetContract(ctx, id)
 	if err != nil {
 		return err
 	}

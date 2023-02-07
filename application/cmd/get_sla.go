@@ -18,7 +18,7 @@ var getSlaCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
 		client := pkg.NewClient(config)
-		res := client.Query("ReadContract", id)
+		res := client.Query("ReadSLA", id)
 		fmt.Println("> " + res)
 	},
 }
