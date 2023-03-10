@@ -57,3 +57,9 @@ type Value struct {
 	Value    float32 `json:"value"`
 	Datetime string  `json:"datetime"`
 }
+
+type User struct {
+	Name    string `json:"name"`
+	PubKey  string `json:"pubkey"`
+	Balance string `json:"balance"`
+}

@@ -11,7 +11,6 @@
 GOFLAGS :=
 GO_CMD := go
 
-
 # Docker related settings
 #--------------------------------------------------
 export DOCKER_BUILDKIT ?= 1

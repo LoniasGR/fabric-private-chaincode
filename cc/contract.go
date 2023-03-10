@@ -33,7 +33,16 @@ type cc_SLA struct {
 // Used to test the connection and verify that applications can connect to the chaincode.
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 
-	return nil
+	initStatus, err := ctx.GetStub().GetState("initRan")
+	if err != nil {
+		return fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if initStatus != nil {
+		return fmt.Errorf("init has already ran")
+	}
+
+	return ctx.GetStub().PutState("initRan", []byte("true"))
+
 }
 
 func (s *SmartContract) transferTokens(ctx contractapi.TransactionContextInterface,

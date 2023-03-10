@@ -7,14 +7,8 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-private-chaincode/lib"
 )
-
-type User struct {
-	DocType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
-	Name    string `json:"name"`
-	PubKey  string `json:"pubkey"`
-	Balance string `json:"balance"`
-}
 
 func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface,
 	name, pubkey string, initialBalance int) error {
@@ -35,12 +29,11 @@ func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return fmt.Errorf("querying for public key failed: %v", err)
 	}
-	if (user != User{}) {
+	if (user != lib.User{}) {
 		return fmt.Errorf("public key already exists")
 	}
 
-	user = User{
-		DocType: "user",
+	user = lib.User{
 		Name:    name,
 		PubKey:  pubkey,
 		Balance: strconv.Itoa(initialBalance),
@@ -92,39 +85,39 @@ func (s *SmartContract) updateUserBalance(ctx contractapi.TransactionContextInte
 }
 
 // ReadUser returns the User stored in the world state with given name.
-func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, id string) (User, error) {
+func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, id string) (lib.User, error) {
 	userBytes, err := ctx.GetStub().GetState(fmt.Sprintf("user_%v", id))
 	if err != nil {
-		return User{}, fmt.Errorf("user with id %v could not be read from world state: %v", id, err)
+		return lib.User{}, fmt.Errorf("user with id %v could not be read from world state: %v", id, err)
 	}
 	if len(userBytes) == 0 || userBytes == nil {
-		return User{}, nil
+		return lib.User{}, nil
 	}
 
-	var user User
+	var user lib.User
 	err = json.Unmarshal(userBytes, &user)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to unmarshal file: %v", err)
+		return lib.User{}, fmt.Errorf("failed to unmarshal file: %v", err)
 	}
 	return user, nil
 }
 
 func (s *SmartContract) QueryUsersByPublicKey(ctx contractapi.TransactionContextInterface,
-	publicKey string) (User, error) {
+	publicKey string) (lib.User, error) {
 	publicKey = strings.ReplaceAll(publicKey, "\n", "")
 
 	username, err := ctx.GetStub().GetState(publicKey)
 	if err != nil {
-		return User{}, fmt.Errorf("query failed: %v", err)
+		return lib.User{}, fmt.Errorf("query failed: %v", err)
 	}
 
 	if len(username) == 0 || username == nil {
-		return User{}, nil
+		return lib.User{}, nil
 	}
 
 	user, err := s.ReadUser(ctx, string(username))
 	if err != nil {
-		return User{}, err
+		return lib.User{}, err
 	}
 
 	return user, nil

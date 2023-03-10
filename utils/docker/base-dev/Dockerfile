@@ -21,7 +21,7 @@ FROM hyperledger/fabric-private-chaincode-base-rt:${FPC_VERSION} as common
 LABEL org.opencontainers.image.source https://github.com/hyperledger/fabric-private-chaincode
 
 # config/build params
-ARG GO_VERSION=1.17.5
+ARG GO_VERSION=1.19.5
 ARG NANOPB_VERSION=0.4.3
 ARG OPENSSL=1.1.1g
 ARG SGXSSL=2.10_1.1.1g
@@ -51,7 +51,7 @@ RUN apt-get update -q \
     libssl-dev \
     libtool \
     pkg-config \
-    python \ 
+    python \
     protobuf-compiler \
     python-protobuf \
     # docker commands (need as we use docker daemon from "outside")
@@ -73,12 +73,12 @@ RUN GO_TAR=go${GO_VERSION}.linux-amd64.tar.gz \
 ENV PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
 
 #  Go tools we need
-RUN  go get golang.org/x/tools/cmd/goimports \
-  && go get google.golang.org/protobuf/cmd/protoc-gen-go \
-  && GO111MODULE=off go get github.com/maxbrunsfeld/counterfeiter \
-  && go get honnef.co/go/tools/cmd/staticcheck \
-  && go get github.com/client9/misspell/cmd/misspell \
-  && GO111MODULE=on go get github.com/mikefarah/yq/v3
+RUN  go install golang.org/x/tools/cmd/goimports@latest \
+  && go install google.golang.org/protobuf/cmd/protoc-gen-go@latest \
+  && GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter \
+  && go install honnef.co/go/tools/cmd/staticcheck@latest \
+  && go install github.com/client9/misspell/cmd/misspell@latest \
+  && GO111MODULE=on go install github.com/mikefarah/yq/v3@latest
 
 # Install SGX SSL
 ENV SGX_SSL /opt/intel/sgxssl
