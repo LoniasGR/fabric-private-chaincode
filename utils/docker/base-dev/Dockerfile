@@ -76,7 +76,7 @@ ENV PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
 RUN  go install golang.org/x/tools/cmd/goimports@latest \
   && go install google.golang.org/protobuf/cmd/protoc-gen-go@latest \
   && GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter \
-  && go install honnef.co/go/tools/cmd/staticcheck@latest \
+  && go install honnef.co/go/tools/cmd/staticcheck@0.3.3 \
   && go install github.com/client9/misspell/cmd/misspell@latest \
   && GO111MODULE=on go install github.com/mikefarah/yq/v3@latest
 
