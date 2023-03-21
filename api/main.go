@@ -8,21 +8,25 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"github.com/hyperledger/fabric-private-chaincode/api/pkg"
-)
-
-var (
-	config *pkg.Config
+	"github.com/hyperledger/fabric-private-chaincode/api/globals"
+	"github.com/hyperledger/fabric-private-chaincode/api/ledger"
+	"github.com/hyperledger/fabric-private-chaincode/api/routes"
 )
 
 func main() {
 	initConfig()
-	InitLedger()
+	ledger.InitLedger()
 
 	router := gin.Default()
-	router.GET("/", GetRoot)
-	router.GET("/login", Login)
+
+	router.Use(sessions.Sessions("session", cookie.NewStore(globals.Secret)))
+
+	public := router.Group("/")
+
+	routes.PublicRoutes(public)
 
 	router.Run(":8000")
 }

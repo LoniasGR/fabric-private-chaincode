@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/hyperledger/fabric-private-chaincode/api/globals"
 	"github.com/hyperledger/fabric-private-chaincode/api/pkg"
 )
 
@@ -29,7 +30,7 @@ func initConfig() {
 		return ret
 	}
 
-	config = &pkg.Config{
+	globals.Config = &pkg.Config{
 		CorePeerAddress:         getStrEnv("CORE_PEER_ADDRESS"),
 		CorePeerId:              getStrEnv("CORE_PEER_ID"),
 		CorePeerLocalMSPID:      getStrEnv("CORE_PEER_LOCALMSPID"),
