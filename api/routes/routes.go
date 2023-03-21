@@ -9,3 +9,7 @@ func PublicRoutes(g *gin.RouterGroup) {
 	g.GET("/", controllers.GetIndex)
 	g.POST("/login", controllers.Login)
 }
+
+func PrivateRoutes(g *gin.RouterGroup) {
+	g.GET("/user", controllers.GetUserData)
+}
