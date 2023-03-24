@@ -1,15 +1,18 @@
-package main
+package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/hyperledger/fabric-private-chaincode/api/globals"
 	"github.com/hyperledger/fabric-private-chaincode/api/pkg"
 )
 
-func initConfig() {
+func InitConfig() {
+	rand.Seed(time.Now().UnixNano())
 
 	getStrEnv := func(key string) string {
 		val := os.Getenv(key)

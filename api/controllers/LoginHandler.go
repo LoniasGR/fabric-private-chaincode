@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -10,6 +9,7 @@ import (
 	"github.com/hyperledger/fabric-private-chaincode/api/ledger"
 	"github.com/hyperledger/fabric-private-chaincode/api/models"
 	"github.com/hyperledger/fabric-private-chaincode/api/utils"
+	"github.com/hyperledger/fabric-private-chaincode/lib"
 )
 
 // login ensures the user is logged in
@@ -36,7 +36,7 @@ func Login(c *gin.Context) {
 
 	userLedger := ledger.GetUser(userAPI.Name)
 
-	if userLedger == (models.ContractUser{}) {
+	if userLedger == (lib.User{}) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
 		return
 	}
@@ -48,7 +48,7 @@ func Login(c *gin.Context) {
 	}
 
 	if !match {
-		c.AbortWithError(http.StatusNotFound, fmt.Errorf("Mnemonic and public key do not match"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Mnemonic and public key do not match"})
 		return
 	}
 

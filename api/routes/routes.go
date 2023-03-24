@@ -11,5 +11,11 @@ func PublicRoutes(g *gin.RouterGroup) {
 }
 
 func PrivateRoutes(g *gin.RouterGroup) {
+	// Auth routes
 	g.GET("/user", controllers.GetUserData)
+	g.POST("/logout", controllers.PostLogout)
+
+	// Asset routes
+	g.GET("/assets/:id", controllers.GetSingleSLA)
+	g.POST("/assets", controllers.CreateSLA)
 }

@@ -17,10 +17,11 @@ import (
 	"github.com/hyperledger/fabric-private-chaincode/api/ledger"
 	"github.com/hyperledger/fabric-private-chaincode/api/middleware"
 	"github.com/hyperledger/fabric-private-chaincode/api/routes"
+	"github.com/hyperledger/fabric-private-chaincode/api/utils"
 )
 
 func main() {
-	initConfig()
+	utils.InitConfig()
 	ledger.InitLedger()
 
 	router := gin.Default()

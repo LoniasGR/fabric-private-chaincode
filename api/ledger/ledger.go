@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"github.com/hyperledger/fabric-private-chaincode/api/globals"
-	"github.com/hyperledger/fabric-private-chaincode/api/models"
 	"github.com/hyperledger/fabric-private-chaincode/api/pkg"
 	"github.com/hyperledger/fabric-private-chaincode/api/utils"
+	"github.com/hyperledger/fabric-private-chaincode/lib"
 	"github.com/tyler-smith/go-bip32"
 )
 
@@ -43,14 +43,14 @@ func InitLedger() {
 
 }
 
-func GetUser(name string) models.ContractUser {
+func GetUser(name string) lib.User {
 	client := pkg.NewClient(globals.Config)
 	res, err := client.Query("ReadUser", name)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	var user models.ContractUser
+	var user lib.User
 	json.Unmarshal([]byte(res), &user)
 	return user
 }
@@ -62,4 +62,33 @@ func CreateUser(name, publicKey string) {
 		log.Fatalln(err)
 	}
 
+}
+
+func GetSLA(id string) (lib.SLA, error) {
+	client := pkg.NewClient(globals.Config)
+	res, err := client.Query("ReadSLA", id)
+	if err != nil {
+		return lib.SLA{}, err
+	}
+
+	var sla lib.SLA
+	err = json.Unmarshal([]byte(res), &sla)
+	if err != nil {
+		return lib.SLA{}, err
+	}
+	return sla, nil
+}
+
+func CreateSLA(sla lib.SLA) error {
+	client := pkg.NewClient(globals.Config)
+
+	slaJson, err := json.Marshal(sla)
+	if err != nil {
+		return err
+	}
+	_, err = client.Invoke("CreateOrUpdateContract", string(slaJson))
+	if err != nil {
+		return err
+	}
+	return nil
 }
