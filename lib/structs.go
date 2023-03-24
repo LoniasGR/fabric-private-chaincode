@@ -59,7 +59,9 @@ type Value struct {
 }
 
 type User struct {
-	Name    string `json:"name"`
-	PubKey  string `json:"pubkey"`
-	Balance string `json:"balance"`
+	Name       string `json:"name"`
+	PubKey     string `json:"pubkey"`
+	Balance    string `json:"balance"`
+	ProviderOf string `json:"providerOf"`
+	ClientOf   string `json:"clientOf"`
 }

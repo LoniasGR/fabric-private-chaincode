@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/rand"
-	"strings"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-private-chaincode/lib"
@@ -164,6 +163,22 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 	}
 	if !exists {
 		return fmt.Errorf("provider does not exist")
+	}
+
+	exists, err = s.slaInUserContracts(ctx, sla.Details.Provider.Name, sla.ID)
+	if err != nil {
+		return fmt.Errorf("could not check if sla in provider contracts: %v", err)
+	}
+	if exists {
+		return fmt.Errorf("sla already in provider contracts")
+	}
+
+	exists, err = s.slaInUserContracts(ctx, sla.Details.Client.Name, sla.ID)
+	if err != nil {
+		return fmt.Errorf("could not check if sla in client contracts: %v", err)
+	}
+	if exists {
+		return fmt.Errorf("sla already in client contracts")
 	}
 
 	exists, err = s.UserExists(ctx, sla.Details.Client.Name)
@@ -349,37 +364,4 @@ func (s *SmartContract) RefundSLA(ctx contractapi.TransactionContextInterface, i
 	}
 
 	return ctx.GetStub().PutState(fmt.Sprintf("contract_%v", id), ContractJSON)
-}
-
-func (s *SmartContract) RefundAllSLAs(ctx contractapi.TransactionContextInterface) error {
-	// range query with empty string for startKey and endKey does an
-	// open-ended query of all kv pairs in the chaincode namespace.
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
-	if err != nil {
-		return err
-	}
-	defer resultsIterator.Close()
-
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return err
-		}
-
-		if strings.HasPrefix(queryResponse.Key, "user_") {
-			continue
-		}
-
-		var contract cc_SLA
-		err = json.Unmarshal(queryResponse.Value, &contract)
-		if err != nil {
-			return err
-		}
-
-		err = s.RefundSLA(ctx, contract.ID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

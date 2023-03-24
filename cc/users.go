@@ -34,9 +34,11 @@ func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface,
 	}
 
 	user = lib.User{
-		Name:    name,
-		PubKey:  pubkey,
-		Balance: strconv.Itoa(initialBalance),
+		Name:       name,
+		PubKey:     pubkey,
+		Balance:    strconv.Itoa(initialBalance),
+		ProviderOf: "",
+		ClientOf:   "",
 	}
 	userBytes, err := json.Marshal(user)
 	if err != nil {
@@ -82,6 +84,60 @@ func (s *SmartContract) updateUserBalance(ctx contractapi.TransactionContextInte
 		return fmt.Errorf("failed to marshall user: %v", err)
 	}
 	return ctx.GetStub().PutState(fmt.Sprintf("user_%v", id), userBytes)
+}
+
+func (s *SmartContract) addProvidedSLA(ctx contractapi.TransactionContextInterface, userId, slaId string) error {
+	user, err := s.ReadUser(ctx, userId)
+	if err != nil {
+		return fmt.Errorf("failed to read user %v", err)
+	}
+
+	if user.ProviderOf != "" {
+		user.ProviderOf += ","
+	}
+	user.ProviderOf += slaId
+	return nil
+}
+
+func (s *SmartContract) addConsumedSLA(ctx contractapi.TransactionContextInterface, userId, slaId string) error {
+	user, err := s.ReadUser(ctx, userId)
+	if err != nil {
+		return fmt.Errorf("failed to read user %v", err)
+	}
+
+	if user.ClientOf != "" {
+		user.ClientOf += ","
+	}
+	user.ClientOf += slaId
+	return nil
+}
+
+func (s *SmartContract) slaInUserContracts(ctx contractapi.TransactionContextInterface, userId, slaId string) (bool, error) {
+	user, err := s.ReadUser(ctx, userId)
+	if err != nil {
+		return false, fmt.Errorf("failed to read user %v", err)
+	}
+
+	clientList := strings.Split(user.ClientOf, ",")
+	// Slice of size 1 means that the delimiter was not found in the string
+	if len(clientList) != 1 {
+		for _, sla := range clientList {
+			if sla == slaId {
+				return true, nil
+			}
+		}
+	}
+
+	providerList := strings.Split(user.ProviderOf, ",")
+	// Slice of size 1 means that the delimiter was not found in the string
+	if len(providerList) != 1 {
+		for _, sla := range providerList {
+			if sla == slaId {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 // ReadUser returns the User stored in the world state with given name.
