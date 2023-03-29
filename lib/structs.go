@@ -58,6 +58,11 @@ type Value struct {
 	Datetime string  `json:"datetime"`
 }
 
+type Approval struct {
+	ProviderApproved bool `json:"providerApproved"`
+	ConsumerApproved bool `json:"consumerApproved"`
+}
+
 type User struct {
 	Name       string `json:"name"`
 	PubKey     string `json:"pubkey"`

@@ -18,11 +18,15 @@ go 1.17
 //   not be possible ....)
 
 require (
+	github.com/decred/dcrd/dcrec/secp256k1 v1.0.3
+	github.com/gin-contrib/sessions v0.0.5
+	github.com/gin-gonic/gin v1.7.7
 	github.com/golang/protobuf v1.4.2
 	github.com/hyperledger/fabric v1.4.0-rc1.0.20201118191903-ec81f3e74fa1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20201119163726-f8ef75b17719
 	github.com/hyperledger/fabric-contract-api-go v1.1.1
 	github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354
+	github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-go v0.0.0-20220808110548-1e8fd5cd5647
 	github.com/hyperledger/fabric-sdk-go v1.0.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/onsi/ginkgo v1.12.1
@@ -30,6 +34,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.8.0
+	github.com/tyler-smith/go-bip32 v1.0.0
+	github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6
 	google.golang.org/protobuf v1.25.0
@@ -46,19 +52,17 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/client9/misspell v0.3.4 // indirect
 	github.com/cloudflare/cfssl v1.4.1 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v2 v2.0.0 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v17.12.0-ce-rc1.0.20190628135806-70f67c6240bb+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/fsouza/go-dockerclient v1.4.1 // indirect
-	github.com/gin-contrib/sessions v0.0.5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.3 // indirect
@@ -83,8 +87,6 @@ require (
 	github.com/hyperledger/fabric-amcl v0.0.0-20200128223036-d1aa2665426a // indirect
 	github.com/hyperledger/fabric-config v0.0.7 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
-	github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-go v0.0.0-20220808110548-1e8fd5cd5647 // indirect
-	github.com/hyperledger/fabric-samples/chaincode/marbles02/go v0.0.0-20220718075617-41717d76f2cb // indirect
 	github.com/ijc/Gotty v0.0.0-20170406111628-a8b993ba6abd // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/joho/godotenv v1.3.0 // indirect
@@ -118,8 +120,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.4.0 // indirect
 	github.com/sykesm/zap-logfmt v0.0.2 // indirect
-	github.com/tyler-smith/go-bip32 v1.0.0 // indirect
-	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/weppos/publicsuffix-go v0.5.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect

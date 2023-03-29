@@ -7,10 +7,11 @@ import (
 )
 
 var Config *pkg.Config
-var Secret = []byte(randSeq(10))
+var Secret = []byte(randSeq(32))
 
 const Userkey = "user"
 const AppName = "fabric-private-chaincode"
+const Passphrase = "password"
 
 func randSeq(n int) string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

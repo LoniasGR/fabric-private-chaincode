@@ -96,7 +96,13 @@ func (s *SmartContract) addProvidedSLA(ctx contractapi.TransactionContextInterfa
 		user.ProviderOf += ","
 	}
 	user.ProviderOf += slaId
-	return nil
+
+	userBytes, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("failed to marshall user: %v", err)
+	}
+
+	return ctx.GetStub().PutState(fmt.Sprintf("user_%v", userId), userBytes)
 }
 
 func (s *SmartContract) addConsumedSLA(ctx contractapi.TransactionContextInterface, userId, slaId string) error {
@@ -109,7 +115,13 @@ func (s *SmartContract) addConsumedSLA(ctx contractapi.TransactionContextInterfa
 		user.ClientOf += ","
 	}
 	user.ClientOf += slaId
-	return nil
+
+	userBytes, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("failed to marshall user: %v", err)
+	}
+
+	return ctx.GetStub().PutState(fmt.Sprintf("user_%v", userId), userBytes)
 }
 
 func (s *SmartContract) slaInUserContracts(ctx contractapi.TransactionContextInterface, userId, slaId string) (bool, error) {

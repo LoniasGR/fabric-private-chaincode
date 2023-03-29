@@ -1,6 +1,10 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"fmt"
+
+	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -57,4 +61,28 @@ func PubKeyMatchesMnemonic(mnemonic, passphrase, pubkeySerialized string) (bool,
 	masterKeySerialized := masterKey.PublicKey().B58Serialize()
 
 	return masterKeySerialized == pubkeySerialized, nil
+}
+
+func SignWithPrivateKey(data, mnemonic, passphrase string) ([]byte, error) {
+	seed := bip39.NewSeed(mnemonic, passphrase)
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	// Create the hash of the data
+	hash := sha256.New()
+	hash.Write([]byte(data))
+	hashedData := hash.Sum(nil)
+
+	fmt.Println(hashedData)
+
+	privKey, _ := secp256k1.PrivKeyFromBytes(masterKey.Key)
+
+	// Sign the hash of the data
+	signature, err := privKey.Sign(hashedData)
+	if err != nil {
+		return []byte{}, err
+	}
+	return signature.Serialize(), nil
 }

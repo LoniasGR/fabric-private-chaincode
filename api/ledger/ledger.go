@@ -1,6 +1,7 @@
 package ledger
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -29,7 +30,7 @@ func InitLedger() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		keysSerialized, err := utils.CreateMasterKey(mnemonic, "password")
+		keysSerialized, err := utils.CreateMasterKey(mnemonic, globals.Passphrase)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -61,7 +62,6 @@ func CreateUser(name, publicKey string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 }
 
 func GetSLA(id string) (lib.SLA, error) {
@@ -90,5 +90,31 @@ func CreateSLA(sla lib.SLA) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func GetSLAApproval(id string) (lib.Approval, error) {
+	client := pkg.NewClient(globals.Config)
+	res, err := client.Query("GetApprovals", id)
+	if err != nil {
+		return lib.Approval{}, err
+	}
+
+	var approval lib.Approval
+	err = json.Unmarshal([]byte(res), &approval)
+	if err != nil {
+		return lib.Approval{}, err
+	}
+	return approval, nil
+}
+
+func Approve(id, username string, signature []byte) error {
+	client := pkg.NewClient(globals.Config)
+	_, err := client.Invoke("Approve", id, username, hex.EncodeToString(signature))
+	fmt.Println(err)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

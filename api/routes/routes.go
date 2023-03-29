@@ -18,4 +18,6 @@ func PrivateRoutes(g *gin.RouterGroup) {
 	// Asset routes
 	g.GET("/assets/:id", controllers.GetSingleSLA)
 	g.POST("/assets", controllers.CreateSLA)
+	g.GET("/assets/:id/approvals", controllers.GetSLAApprovalState)
+	g.POST("/assets/:id/approve", controllers.ApproveSLA)
 }

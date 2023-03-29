@@ -34,6 +34,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	if userAPI.Name == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Name is missing"})
+		return
+	}
+
 	userLedger := ledger.GetUser(userAPI.Name)
 
 	if userLedger == (lib.User{}) {
@@ -41,7 +46,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	match, err := utils.PubKeyMatchesMnemonic(userAPI.Mnemonic, "password", userLedger.PubKey)
+	match, err := utils.PubKeyMatchesMnemonic(userAPI.Mnemonic, globals.Passphrase, userLedger.PubKey)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

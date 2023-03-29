@@ -1,16 +1,16 @@
 package main
 
 import (
-	"crypto/ed25519"
-	"crypto/x509"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"math/rand"
 
+	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-private-chaincode/lib"
+	"github.com/tyler-smith/go-bip32"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -20,12 +20,11 @@ type SmartContract struct {
 
 type cc_SLA struct {
 	lib.SLA
-	ProviderApproved bool    `json:"providerApproved"`
-	ConsumerApproved bool    `json:"consumerApproved"`
-	RefundValue      int     `json:"RefundValue"` // compensation amount
-	TotalViolations  []int   `json:"TotalViolations"`
-	DailyValue       float64 `json:"DailyValue"`
-	DailyViolations  []int   `json:"DailyViolations"`
+	lib.Approval
+	RefundValue     int     `json:"RefundValue"` // compensation amount
+	TotalViolations []int   `json:"TotalViolations"`
+	DailyValue      float64 `json:"DailyValue"`
+	DailyViolations []int   `json:"DailyViolations"`
 }
 
 // InitLedger is just a template for now.
@@ -78,6 +77,19 @@ func (s *SmartContract) transferTokens(ctx contractapi.TransactionContextInterfa
 	return nil
 }
 
+func (s *SmartContract) GetApprovals(ctx contractapi.TransactionContextInterface, slaId string) (string, error) {
+	contract, err := s.GetContract(ctx, slaId)
+	if err != nil {
+		return "", err
+	}
+
+	approvalJSON, err := json.Marshal(contract.Approval)
+	if err != nil {
+		return "", err
+	}
+	return string(approvalJSON), err
+}
+
 // Approve gets the signature of the user and verifies they have signed the contract
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, slaId, userName, signatureHex string) error {
 	contract, err := s.GetContract(ctx, slaId)
@@ -108,34 +120,36 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, sla
 		return err
 	}
 
-	signature, err := hex.DecodeString(signatureHex)
+	signatureBytes, err := hex.DecodeString(signatureHex)
 	if err != nil {
 		return err
 	}
 
-	pubKeyPEM, err := lib.ReadCertificate(user.PubKey)
+	pubKey, err := bip32.B58Deserialize(user.PubKey)
 	if err != nil {
 		return err
 	}
-	block, _ := pem.Decode([]byte(pubKeyPEM))
-	if block == nil {
-		return fmt.Errorf("Public key file could not be read")
-	}
 
-	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	pubKeyParsed, err := secp256k1.ParsePubKey(pubKey.PublicKey().Key)
 	if err != nil {
 		return err
 	}
-	key, ok := publicKey.(ed25519.PublicKey)
-	if !ok {
-		return fmt.Errorf("Wrong key type, expected ed25519")
+
+	signature, err := secp256k1.ParseDERSignature(signatureBytes)
+	if err != nil {
+		return err
 	}
 
-	if ed25519.Verify(ed25519.PublicKey(key), slaJSON, signature) {
+	// Create the hash of the data
+	hash := sha256.New()
+	hash.Write([]byte(slaJSON))
+	hashedData := hash.Sum(nil)
+
+	if signature.Verify(hashedData, pubKeyParsed) {
 		if client {
-			contract.ConsumerApproved = true
+			contract.Approval.ConsumerApproved = true
 		} else {
-			contract.ProviderApproved = true
+			contract.Approval.ProviderApproved = true
 		}
 	} else {
 		return fmt.Errorf("Signature could not be verified")
@@ -165,22 +179,6 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 		return fmt.Errorf("provider does not exist")
 	}
 
-	exists, err = s.slaInUserContracts(ctx, sla.Details.Provider.Name, sla.ID)
-	if err != nil {
-		return fmt.Errorf("could not check if sla in provider contracts: %v", err)
-	}
-	if exists {
-		return fmt.Errorf("sla already in provider contracts")
-	}
-
-	exists, err = s.slaInUserContracts(ctx, sla.Details.Client.Name, sla.ID)
-	if err != nil {
-		return fmt.Errorf("could not check if sla in client contracts: %v", err)
-	}
-	if exists {
-		return fmt.Errorf("sla already in client contracts")
-	}
-
 	exists, err = s.UserExists(ctx, sla.Details.Client.Name)
 	if err != nil {
 		return fmt.Errorf("client account %s could not be read: %v", sla.Details.Client.ID, err)
@@ -207,16 +205,23 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 		totalViolations = contract.TotalViolations
 		dailyViolations = contract.DailyViolations
 		dailyValue = contract.DailyValue
+	} else {
+		s.addProvidedSLA(ctx, sla.Details.Provider.Name, sla.ID)
+		s.addConsumedSLA(ctx, sla.Details.Client.Name, sla.ID)
+	}
+
+	approval := lib.Approval{
+		ProviderApproved: false,
+		ConsumerApproved: false,
 	}
 
 	contract := cc_SLA{
-		SLA:              sla,
-		RefundValue:      value,
-		TotalViolations:  totalViolations,
-		DailyViolations:  dailyViolations,
-		DailyValue:       dailyValue,
-		ProviderApproved: false,
-		ConsumerApproved: false,
+		SLA:             sla,
+		Approval:        approval,
+		RefundValue:     value,
+		TotalViolations: totalViolations,
+		DailyViolations: dailyViolations,
+		DailyValue:      dailyValue,
 	}
 
 	slaContractJSON, err := json.Marshal(contract)
@@ -228,13 +233,18 @@ func (s *SmartContract) CreateOrUpdateContract(ctx contractapi.TransactionContex
 }
 
 // ReadSLA returns the Contract stored in the world state with given id.
-func (s *SmartContract) ReadSLA(ctx contractapi.TransactionContextInterface, id string) (lib.SLA, error) {
+func (s *SmartContract) ReadSLA(ctx contractapi.TransactionContextInterface, id string) (string, error) {
 	contract, err := s.GetContract(ctx, id)
 	if err != nil {
-		return lib.SLA{}, err
+		return "", err
 	}
 
-	return contract.SLA, nil
+	SLAJson, err := json.Marshal(contract.SLA)
+	if err != nil {
+		return "", err
+	}
+
+	return string(SLAJson), nil
 }
 
 // GetContract returns all the SLA information stored in the world state with given id.
